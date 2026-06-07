@@ -26,8 +26,15 @@ import os
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
+from qgis.PyQt.QtWidgets import QInputDialog, QLineEdit
+from qgis.core import QgsSettings
 
-# This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
+from .agent.agent import QgisAiAgent as AgentCore
+
+
+SETTINGS_KEY = "qgis_ai_agent/api_key"
+
+
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(
         os.path.dirname(__file__),
@@ -35,12 +42,69 @@ FORM_CLASS, _ = uic.loadUiType(
 
 
 class QgisAiAgentDialog(QtWidgets.QDialog, FORM_CLASS):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, agent=None):
         """Constructor."""
         super(QgisAiAgentDialog, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        self.agent = agent
+
+        self.btn_send.clicked.connect(self.on_send_clicked)
+        self.btn_settings.clicked.connect(self.on_settings_clicked)
+        self.user_input.returnPressed.connect(self.on_send_clicked)
+
+    def set_agent(self, agent):
+        self.agent = agent
+
+    def _append_chat(self, sender, text):
+        self.chat_output.append(f"<b>{sender}:</b> {text}<br>")
+
+    def _update_status(self, text):
+        self.lbl_status.setText(text)
+        QtWidgets.QApplication.processEvents()
+
+    def on_send_clicked(self):
+        query = self.user_input.text().strip()
+        if not query:
+            return
+
+        if self.agent is None:
+            self.lbl_status.setText("No API key set. Click ⚙ Settings.")
+            return
+
+        client = getattr(self.agent, "client", None)
+        if client is not None and hasattr(client, "set_status_callback"):
+            client.set_status_callback(self._update_status)
+
+        self._append_chat("You", query)
+        self.user_input.clear()
+        self._update_status("Thinking...")
+
+        try:
+            response = self.agent.run(query)
+        except Exception as e:
+            response = f"[Error] {e}"
+
+        if client is not None and hasattr(client, "set_status_callback"):
+            client.set_status_callback(None)
+
+        self._append_chat("Agent", response)
+        self.lbl_status.setText("Ready")
+
+    def on_settings_clicked(self):
+        try:
+            settings = QgsSettings()
+            current = settings.value(SETTINGS_KEY, "") or ""
+            echo_mode = getattr(QLineEdit, "EchoMode", QLineEdit).Password
+            key, ok = QInputDialog.getText(
+                self,
+                "QGIS AI Agent — Settings",
+                "OpenRouter API key:",
+                echo_mode,
+                current,
+            )
+            if ok:
+                settings.setValue(SETTINGS_KEY, key)
+                self.agent = AgentCore(api_key=key) if key else None
+                self.lbl_status.setText("API key saved" if key else "API key cleared")
+        except Exception as e:
+            self.lbl_status.setText(f"Settings error: {e}")
