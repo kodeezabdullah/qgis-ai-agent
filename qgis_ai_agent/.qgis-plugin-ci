@@ -1,0 +1,5 @@
+# qgis-plugin-ci configuration
+# See https://opengisch.github.io/qgis-plugin-ci/
+plugin_path: qgis_ai_agent
+github_organization_slug: kodeezabdullah
+project_slug: qgis-ai-agent
