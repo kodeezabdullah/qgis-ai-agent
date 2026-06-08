@@ -87,7 +87,7 @@ SYSTEM_PROMPT = (
     "2. If ImportError, respond with EXACTLY this message:\n"
     "'To enable document generation, please run this command in OSGeo4W Shell first:\n\n"
     "python -m pip install pypdf python-docx openpyxl pandas\n\n"
-    "After running, reload the plugin (Plugins → Plugin Reloader → qgis_ai_agent) and ask me again!'\n"
+    "After running, reload the plugin (Plugins → Plugin Reloader → qgis_ai_assistant) and ask me again!'\n"
     "3. Only proceed with document generation if import succeeds."
 )
 
