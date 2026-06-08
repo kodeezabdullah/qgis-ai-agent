@@ -7,7 +7,7 @@
 name=QGIS AI Assistant
 qgisMinimumVersion=3.0
 description=AI-powered spatial queries inside QGIS
-version=0.1
+version=0.1.1
 author=kodeezabdullah
 email=abdullah.gis.services@gmail.com
 

@@ -53,7 +53,6 @@ from .tools import (
     open_attribute_table,
     zoom_to_feature,
     get_crs,
-    execute_qgis_code,
     generate_report,
     generate_csv,
     generate_map_image,
@@ -71,13 +70,6 @@ SYSTEM_PROMPT = (
     "6. For hiding/showing specific features, use filter_features() with correct field and value.\n"
     "7. When the user says 'show only X', use filter_features() to filter the layer.\n"
     "8. Always explain what you did and what field you used.\n\n"
-    "WHEN NO SPECIFIC TOOL EXISTS FOR A TASK:\n"
-    "1. Write clean PyQGIS Python code to accomplish it.\n"
-    "2. Call execute_qgis_code() with the code.\n"
-    "3. Never say 'I cannot do this' — always try to write code first.\n"
-    "4. Available in code: iface, QgsProject, processing, QgsVectorLayer, QgsRasterLayer, "
-    "QgsExpression, QgsField, QgsCoordinateReferenceSystem, QVariant, QColor, and all qgis.core classes via 'qgis'.\n"
-    "5. Assign the final value to a variable named 'result' to have it returned.\n\n"
     "CONVERSATION CONTEXT:\n"
     "You have access to the full conversation history above. "
     "Use previous context to understand follow-up questions. "
@@ -148,7 +140,6 @@ TOOL_REGISTRY = {
     "open_attribute_table": open_attribute_table,
     "zoom_to_feature": zoom_to_feature,
     "get_crs": get_crs,
-    "execute_qgis_code": execute_qgis_code,
     "generate_report": generate_report,
     "generate_csv": generate_csv,
     "generate_map_image": generate_map_image,

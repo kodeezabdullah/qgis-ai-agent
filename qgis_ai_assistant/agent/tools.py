@@ -1089,53 +1089,6 @@ def generate_map_image(output_path):
         return {"error": f"generate_map_image failed: {e}"}
 
 
-def execute_qgis_code(code):
-    if not QGIS_AVAILABLE:
-        return {"error": "QGIS not available"}
-    if not isinstance(code, str) or not code.strip():
-        return {"error": "code must be a non-empty string"}
-
-    import io
-    import contextlib
-    import qgis.core as qgis_core
-
-    exec_globals = {
-        "__builtins__": __builtins__,
-        "iface": iface,
-        "processing": processing,
-        "QgsProject": QgsProject,
-        "QgsApplication": qgis_core.QgsApplication,
-        "QgsVectorLayer": QgsVectorLayer,
-        "QgsRasterLayer": QgsRasterLayer,
-        "QgsExpression": QgsExpression,
-        "QgsField": QgsField,
-        "QgsCoordinateReferenceSystem": QgsCoordinateReferenceSystem,
-        "qgis": qgis_core,
-        "QVariant": QVariant,
-        "QColor": QColor,
-    }
-    exec_locals = {}
-
-    stdout_buf = io.StringIO()
-    try:
-        with contextlib.redirect_stdout(stdout_buf):
-            exec(code, exec_globals, exec_locals)
-    except Exception as e:
-        import traceback
-        return {
-            "error": f"{type(e).__name__}: {e}",
-            "traceback": traceback.format_exc(),
-            "stdout": stdout_buf.getvalue(),
-        }
-
-    result_value = exec_locals.get("result")
-    return {
-        "success": True,
-        "stdout": stdout_buf.getvalue(),
-        "result": repr(result_value) if result_value is not None else None,
-    }
-
-
 def get_crs(layer_name):
     if not QGIS_AVAILABLE:
         return {"error": "QGIS not available"}
@@ -1943,30 +1896,6 @@ TOOLS_SCHEMA = [
                     "output_path": {"type": "string", "description": "Absolute output .png path."},
                 },
                 "required": ["output_path"],
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "execute_qgis_code",
-            "description": (
-                "Execute arbitrary PyQGIS Python code inside QGIS when no dedicated tool fits. "
-                "The code runs with access to: iface, processing, QgsProject, QgsApplication, "
-                "QgsVectorLayer, QgsRasterLayer, QgsExpression, QgsField, QgsCoordinateReferenceSystem, "
-                "QVariant, QColor, and the qgis.core module as 'qgis'. "
-                "Assign your final value to a variable named 'result' to have it returned. "
-                "Use print() for progress messages — stdout is captured."
-            ),
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "type": "string",
-                        "description": "PyQGIS Python source code to execute.",
-                    },
-                },
-                "required": ["code"],
             },
         },
     },
